@@ -4,7 +4,7 @@ pipeline{
         stage("BUILD"){
             steps{
                 echo "========executing ./mvnw spring-boot:build-image ========"
-                dir("${WORKSPACE}"){
+                dir(path: "$WORKSPACE"){
                     sh  './mvnw spring-boot:build-image'
                 }
             }
