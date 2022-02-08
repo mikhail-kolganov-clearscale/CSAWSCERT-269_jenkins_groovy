@@ -1,9 +1,9 @@
 pipeline{
     agent any
     stages{
-        stage("A"){
+        stage("BBBBBBB"){
             steps{
-                echo "========executing A========"
+                echo "========executing BBBBBB========"
             }
             post{
                 always{
