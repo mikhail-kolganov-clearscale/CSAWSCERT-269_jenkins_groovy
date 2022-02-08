@@ -1,22 +1,13 @@
 pipeline{
     agent any
     stages{
-        stage("BBBBBBB"){
+        stage("BUILD"){
             steps{
-                echo "========executing BBBBBB========"
-                sh  'env'
+                echo "========executing ./mvnw spring-boot:build-image ========"
+                dir("${WORKSPACE}"){
+                    sh  './mvnw spring-boot:build-image'
+                }
             }
-            // post{
-            //     always{
-            //         echo "========always========"
-            //     }
-            //     success{
-            //         echo "========A executed successfully========"
-            //     }
-            //     failure{
-            //         echo "========A execution failed========"
-            //     }
-            // }
         }
     }
     post{
