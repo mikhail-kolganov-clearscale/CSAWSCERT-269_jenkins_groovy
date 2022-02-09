@@ -24,12 +24,14 @@ podTemplate(yaml: '''
         containers:
             -   name: busybox
                 image: busybox
+                imagePullPolicy: IfNotPresent
                 command:
                 - sleep
                 args:
                 - 99d
             -   name: alpine
                 image: alpine
+                imagePullPolicy: IfNotPresent
                 command:
                 - sleep
                 args:
@@ -53,9 +55,16 @@ podTemplate(yaml: '''
                         echo 33333333333 >> file.txt
                     '''
 
-                    archive(
-                        includes: test_*.txt,file*.txt
+                    stash(
+                        name: 'TestStash01',
+                        includes: "test_*.txt,file*.txt",
+                        allowEmpty: false
                     )
+
+                    // archiveArtifacts(
+                    //     artifacts: "test_*.txt,file*.txt",
+                    //     allowEmptyArchive: true
+                    // )
                 }
             }
 
@@ -72,8 +81,9 @@ timeout(unit: 'SECONDS', time: 150) {
                 some-label: some-label-value
         spec:
             containers:
-                -   name: busybox2
-                    image: busybox
+                -   name: kaniko
+                    image: gcr.io/kaniko-project/executor:debug
+                    imagePullPolicy: IfNotPresent
                     command:
                     - sleep
                     args:
@@ -82,10 +92,10 @@ timeout(unit: 'SECONDS', time: 150) {
         node(POD_LABEL) {
 
             stage ("Stage 2 - b") {
-                container('busybox2') {
+                container('kaniko') {
                     echo POD_CONTAINER // displays 'busybox'
                     sh 'hostname'
-                    unarchive
+                    unstash name: 'TestStash01'
                     sh 'cat test_file.txt; ls -la'
                     sh 'prinenv | sort'
                 }
