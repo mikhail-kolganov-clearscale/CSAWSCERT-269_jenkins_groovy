@@ -14,6 +14,10 @@ properties([
     )
 ])
 
+String branchName = env.BRANCH_NAME
+String gitCredentials = "github"
+String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_jenkins_groovy.git"
+
 podTemplate(yaml: '''
     apiVersion: v1
     kind: Pod
@@ -50,20 +54,13 @@ podTemplate(yaml: '''
 
         stage('Clone the Git repo') {
 
-            sh 'printenv | sort'
+            // sh 'printenv | sort'
             // echo $GIT_BRANCH
             // echo $GIT_URL
-            // git branch: $GIT_BRANCH, credentialsId: $GIT_BRANCH, url: $GIT_URL
+            git branch: $GIT_BRANCH, credentialsId: $GIT_BRANCH, url: $GIT_URL
+            ${WORKSPACE}/mvnw package
             }
-        stage ("Build Sping-Boot App") {
 
-                sh '''
-                pwd
-                echo $WORKSPACR
-                ${WORKSPACE}/mvnw package
-                '''
-
-        }
         stage ("Build Dokcer Image in Kaniko") {
             container('kaniko', shell: '/busybox/sh') {
                 sh  '''#!/busybox/sh
