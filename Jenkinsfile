@@ -1,25 +1,73 @@
-pipeline{
-    agent any
-    stages{
-        stage("BUILD"){
-            steps{
-                echo "========executing ./mvnw spring-boot:build-image ========"
-                dir(path: "$WORKSPACE"){
-                    sh  './mvnw spring-boot:build-image'
-                }
+podTemplate(yaml: '''
+    apiVersion: v1
+    kind: Pod
+    metadata:
+        labels: 
+            some-label: some-label-value
+    spec:
+        containers:
+            - name: busybox
+                image: busybox
+                command:
+                - sleep
+                args:
+                - 99d
+            - name: alpine
+                image: alpine
+                command:
+                - sleep
+                args:
+                - 99d
+    ''') {
+    node(POD_LABEL) {
+
+        stage ("Stage 1 - A") {
+            container('busybox') {
+                echo POD_CONTAINER // displays 'busybox'
+                sh 'hostname'
+                sh 'echo "TEST TEXT!!!" > test_file.txt '
             }
         }
-    }
-    post{
-        always{
-            echo "========always========"
-            echo "${WORKSPACE}"
+        stage ("Stage 2 - B") {
+            container('alpine') {
+                step('step2 - 1') {
+                    echo "------- step 2-1"
+                }
+                step('step2 -2') {
+                    sh 'cat test_file.txt'
+                }
+            }
+
         }
-        success{
-            echo "========pipeline executed successfully ========"
-        }
-        failure{
-            echo "========pipeline execution failed========"
-        }
+
     }
 }
+
+podTemplate(yaml: '''
+    apiVersion: v1
+    kind: Pod
+    metadata:
+        labels: 
+            some-label: some-label-value
+    spec:
+        containers:
+            - name: busybox2
+                image: busybox
+                command:
+                - sleep
+                args:
+                - 99d
+    ''') {
+    node(POD_LABEL) {
+
+        stage ("Stage 2 - b") {
+            container('busybox2') {
+                echo POD_CONTAINER // displays 'busybox'
+                sh 'hostname'
+                sh 'echo "TEST TEXT!!!" > test_file.txt '
+            }
+        }
+
+        }
+
+    }
