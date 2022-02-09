@@ -35,6 +35,14 @@ podTemplate(yaml: '''
                 volumeMounts:
                 -   name: jenkins-docker-cfg
                     mountPath: /kaniko/.docker
+
+            -   name: jdk
+                workingDir: /home/jenkins
+                image: openjdk:11
+                imagePullPolicy: IfNotPresent
+                command:
+                - cat
+                tty: true
         volumes:
         -   name: jenkins-docker-cfg
             projected:
@@ -48,11 +56,13 @@ podTemplate(yaml: '''
     node(POD_LABEL) {
 
         stage ("Build Sping-Boot App") {
-            sh '''
-            pwd
-            echo $WORKSPACR
-            ${WORKSPACE}/mvnw package
-            '''
+            container('jdk') {
+                sh '''
+                pwd
+                echo $WORKSPACR
+                ${WORKSPACE}/mvnw package
+                '''
+            }
         }
         stage ("Build Dokcer Image in Kaniko") {
             container('kaniko', shell: '/busybox/sh') {
