@@ -62,7 +62,8 @@ podTemplate(yaml: '''
             }
 
         stage ("Build Dokcer Image in Kaniko") {
-            container('kaniko', shell: '/busybox/sh') {
+            container(name: 'kaniko', shell: '/busybox/sh') {
+
                 sh  '''#!/busybox/sh
                     /kaniko/executor --context `pwd` --verbosity debug --destination m2hadmin/test-pet-clinic:latest
                     '''
