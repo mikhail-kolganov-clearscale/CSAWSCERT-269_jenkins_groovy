@@ -48,7 +48,7 @@ podTemplate(yaml: '''
     node(POD_LABEL) {
 
         stage ("Build Sping-Boot App") {
-            ./mvnw package
+            sh './mvnw package'
         }
         stage ("Build Dokcer Image in Kaniko") {
             container('kaniko', shell: '/busybox/sh') {
