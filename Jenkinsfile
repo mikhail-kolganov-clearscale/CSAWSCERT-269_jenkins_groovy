@@ -47,7 +47,15 @@ podTemplate(yaml: '''
         stage ("Stage 2 - B") {
             container('alpine') {
                     echo "------- step 2-1"
-                    sh 'cat test_file.txt'
+                    sh '''
+                        cat test_file.txt
+                        echo TEST_TEXT_2 >> test_file2.txt
+                        echo 33333333333 >> file.txt
+                    '''
+
+                    archive(
+                        includes: test_*.txt,file.*
+                    )
                 }
             }
 
@@ -55,7 +63,7 @@ podTemplate(yaml: '''
 
     }
 
-timeout(unit: 'SECONDS', time: 50) {
+timeout(unit: 'SECONDS', time: 150) {
     podTemplate(yaml: '''
         apiVersion: v1
         kind: Pod
@@ -77,7 +85,8 @@ timeout(unit: 'SECONDS', time: 50) {
                 container('busybox2') {
                     echo POD_CONTAINER // displays 'busybox'
                     sh 'hostname'
-                    sh 'cat test_file.txt '
+                    unarchive
+                    sh 'cat test_file.txt; ls -la'
                     sh 'prinenv | sort'
                 }
             }
