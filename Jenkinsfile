@@ -36,13 +36,13 @@ podTemplate(yaml: '''
                 -   name: jenkins-docker-cfg
                     mountPath: /kaniko/.docker
 
-            -   name: jdk
-                workingDir: /home/jenkins
-                image: openjdk:11
-                imagePullPolicy: IfNotPresent
-                command:
-                - cat
-                tty: true
+            // -   name: jdk
+            //     workingDir: /home/jenkins
+            //     image: openjdk:11
+            //     imagePullPolicy: IfNotPresent
+            //     command:
+            //     - cat
+            //     tty: true
         volumes:
         -   name: jenkins-docker-cfg
             projected:
@@ -55,14 +55,17 @@ podTemplate(yaml: '''
     ''') {
     node(POD_LABEL) {
 
+        stage('Clone the Git repo') {
+            git branch: env.GIT_BRANCH, credentialsId: 	env.GIT_BRANCH, url: env.GIT_URL
+            }
         stage ("Build Sping-Boot App") {
-            container('jdk') {
+            // container('jdk') {
                 sh '''
                 pwd
                 echo $WORKSPACR
                 ${WORKSPACE}/mvnw package
                 '''
-            }
+            // }
         }
         stage ("Build Dokcer Image in Kaniko") {
             container('kaniko', shell: '/busybox/sh') {
