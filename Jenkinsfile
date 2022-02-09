@@ -54,7 +54,7 @@ podTemplate(yaml: '''
                     '''
 
                     archive(
-                        includes: test_*.txt,file.*
+                        includes: test_*.txt,file*.txt
                     )
                 }
             }
