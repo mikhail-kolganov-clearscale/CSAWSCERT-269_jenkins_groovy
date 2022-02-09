@@ -50,9 +50,8 @@ podTemplate(yaml: '''
         stage ("Build Sping-Boot App") {
             sh '''
             pwd
-            ls -la
-            ls -la ./src
-            ./mvnw package
+            echo $WORKSPACR
+            ${WORKSPACE}/mvnw package
             '''
         }
         stage ("Build Dokcer Image in Kaniko") {
