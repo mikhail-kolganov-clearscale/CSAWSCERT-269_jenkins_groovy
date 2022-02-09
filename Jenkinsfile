@@ -49,9 +49,9 @@ podTemplate(yaml: '''
     node(POD_LABEL) {
 
         stage('Clone the Git repo') {
-            echo env.GIT_BRANCH
-            echo env.GIT_URL
-            // git branch: env.GIT_BRANCH, credentialsId: env.GIT_BRANCH, url: env.GIT_URL
+            echo $GIT_BRANCH
+            echo $GIT_URL
+            git branch: $GIT_BRANCH, credentialsId: $GIT_BRANCH, url: $GIT_URL
             }
         stage ("Build Sping-Boot App") {
 
