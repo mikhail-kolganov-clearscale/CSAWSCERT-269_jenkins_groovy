@@ -6,13 +6,13 @@ podTemplate(yaml: '''
             some-label: some-label-value
     spec:
         containers:
-            - name: busybox
+            -   name: busybox
                 image: busybox
                 command:
                 - sleep
                 args:
                 - 99d
-            - name: alpine
+            -   name: alpine
                 image: alpine
                 command:
                 - sleep
@@ -51,7 +51,7 @@ podTemplate(yaml: '''
             some-label: some-label-value
     spec:
         containers:
-            - name: busybox2
+            -   name: busybox2
                 image: busybox
                 command:
                 - sleep
