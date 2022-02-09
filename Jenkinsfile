@@ -30,10 +30,7 @@ podTemplate(yaml: '''
         }
         stage ("Stage 2 - B") {
             container('alpine') {
-                step('step2 - 1') {
                     echo "------- step 2-1"
-                }
-                step('step2 -2') {
                     sh 'cat test_file.txt'
                 }
             }
@@ -41,7 +38,7 @@ podTemplate(yaml: '''
         }
 
     }
-}
+
 
 podTemplate(yaml: '''
     apiVersion: v1
