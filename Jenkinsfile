@@ -57,7 +57,7 @@ podTemplate(yaml: '''
             // sh 'printenv | sort'
             // echo $GIT_BRANCH
             // echo $GIT_URL
-            git branch: $GIT_BRANCH, credentialsId: $GIT_BRANCH, url: $GIT_URL
+            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh '${WORKSPACE}/mvnw package'
             }
 
