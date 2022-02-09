@@ -58,7 +58,7 @@ podTemplate(yaml: '''
             // echo $GIT_BRANCH
             // echo $GIT_URL
             git branch: $GIT_BRANCH, credentialsId: $GIT_BRANCH, url: $GIT_URL
-            ${WORKSPACE}/mvnw package
+            sh '${WORKSPACE}/mvnw package'
             }
 
         stage ("Build Dokcer Image in Kaniko") {
