@@ -1,17 +1,18 @@
-parameters(
-    [
-        string(
-            name: "ParamString01",
-            defaultValue: 'DefaultValue01', 
-            description: 'SomeTestParameter'
-        ),
-        choice(
-            name: 'TestChoiceParam01', 
-            choices: ['one', 'two', 'three'], 
-            description: 'This is my test choise param')
-    ]
-)
-
+properties([
+    parameters(
+        [
+            string(
+                name: "ParamString01",
+                defaultValue: 'DefaultValue01', 
+                description: 'SomeTestParameter'
+            ),
+            choice(
+                name: 'TestChoiceParam01', 
+                choices: ['one', 'two', 'three'], 
+                description: 'This is my test choise param')
+        ]
+    )
+])
 
 podTemplate(yaml: '''
     apiVersion: v1
