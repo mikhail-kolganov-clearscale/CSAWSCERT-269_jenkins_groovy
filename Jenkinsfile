@@ -53,7 +53,7 @@ def generateStep(String stepName){
 
 def generateStage(String test, String testGroup) {
 
-    if (parallelTests.containskey(test)) {
+    if (parallelTests.containsKey(test)) {
         return {
             stage("${testGroup} : ${test}") {
                 parallelTests.getAtt(test).each {
