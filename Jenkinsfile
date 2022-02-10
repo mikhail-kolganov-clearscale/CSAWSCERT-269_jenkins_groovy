@@ -114,7 +114,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
         }
 
 
-        if ( myTestTrigger = env.TestTrigger.toString().toBoolean() ?: true ){
+        if ( env.TestTrigger.toString().toBoolean()){
 
             listOfTestsToExecute = []
             
