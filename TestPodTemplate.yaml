@@ -1,0 +1,16 @@
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  containers:
+  - name: jnlp
+    workingDir: /home/jenkins
+  - name: testpod
+    workingDir: /home/jenkins
+    image: alpine
+    imagePullPolicy: Always
+    command:
+    - sleep
+    - '99999'
+    tty: true
+
