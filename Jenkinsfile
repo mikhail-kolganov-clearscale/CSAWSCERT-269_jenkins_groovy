@@ -98,7 +98,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             echo "===== Cloning the branch: ${NEW_branchName} of ${repoUrl} ====="
             git branch: NEW_branchName, credentialsId: gitCredentials, url: repoUrl
 
-            if( ${params.CommitHash} != '-USE CURRENT HEAD-') {
+            if( "${params.CommitHash}" != '-USE CURRENT HEAD-') {
                 echo "======== Checking out to the Commit: ${params.CommitHash} ========"
                     sh "git checkout ${params.CommitHash}"
                 }
