@@ -94,7 +94,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
         stage('Clone the Repo') {
             // sh 'printenv | sort'
 
-            NEW_branchName = ( ${params.GitBranchOwerride} != '-USE DEFAULT-' ) ? ${params.GitBranchOwerride} : ${env.BRANCH_NAME}
+            def NEW_branchName = ( "${params.GitBranchOwerride}" != '-USE DEFAULT-' ) ? "${params.GitBranchOwerride}" : "${env.BRANCH_NAME}"
             echo "===== Cloning the branch: ${NEW_branchName} of ${repoUrl} ====="
             git branch: NEW_branchName, credentialsId: gitCredentials, url: repoUrl
 
