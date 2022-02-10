@@ -2,17 +2,7 @@
 properties([
     parameters(
         [
-            string(
-                name: "KanikoImage",
-                defaultValue: 'gcr.io/kaniko-project/executor:debug', 
-                description: 'Kaniko Image path'
-            ),
-            booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?'),
-
-            choice(
-                name: 'TestChoiceParam01', 
-                choices: ['one', 'two', 'three'], 
-                description: 'This is my test choise param')
+            booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?')
         ]
     )
 ])
