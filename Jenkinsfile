@@ -1,3 +1,4 @@
+
 properties([
     parameters(
         [
@@ -8,7 +9,7 @@ properties([
             ),
 
             booleanParam(name: 'LimitBuilderBool', defaultValue: true, description: 'Limit the Builder POD resources?'),
-            
+
             string(
                 name: "BuilderCpuLimit",
                 defaultValue: '200m', 
@@ -43,48 +44,13 @@ InitPodResources = """
 
 
 
-InitilaBuildPodTemplateYaml = """
-    apiVersion: v1
-    kind: Pod
-    metadata:
-        labels: 
-            some-label: some-label-value
-    spec:
-        containers:
-            -   name: jnlp
-                workingDir: /home/jenkins
-                resources: ${ LimitBuilderBool ? InitPodResources : '{}' }
-                
-            -   name: kaniko
-                workingDir: /home/jenkins
-                image: ${KanikoImage}
-                imagePullPolicy: IfNotPresent
-                command:
-                - /busybox/cat
-                tty: true
-                resources: ${ LimitBuilderBool ? InitPodResources : '{}' }
-                volumeMounts:
-                -   name: jenkins-docker-cfg
-                    mountPath: /kaniko/.docker
-
-        volumes:
-        -   name: jenkins-docker-cfg
-            projected:
-                sources:
-                -   secret:
-                        name: docker-credentials
-                        items:
-                            -   key: .dockerconfigjson
-                                path: config.json
-"""
-
-
-podTemplate(yaml: InitilaBuildPodTemplateYaml ) {
-    node(POD_LABEL) {
-
+podTemplate(yaml: readTrusted('BuildPodTemplate.yaml') {
+    podTemplate(containers: [containerTemplate(image: $KanikoImage, name: 'kaniko', ttyEnabled: true, resources: $LimitBuilderBool ? ${} : '{}')]) {
+      node(POD_LABEL) { // gets a pod with both docker and maven
         stage('Build the App') {
             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
-            sh '${WORKSPACE}/mvnw package'
+            sh 'pwd && ls -la'
+            // sh '${WORKSPACE}/mvnw package'
             }
 
         stage ("Build Docker Image in Kaniko") {
@@ -97,10 +63,34 @@ podTemplate(yaml: InitilaBuildPodTemplateYaml ) {
                 //     '''
                 }
             }
-
         }
-
     }
+}
+
+
+
+// podTemplate(yaml: InitilaBuildPodTemplateYaml ) {
+//     node(POD_LABEL) {
+
+//         stage('Build the App') {
+//             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
+//             sh '${WORKSPACE}/mvnw package'
+//             }
+
+//         stage ("Build Docker Image in Kaniko") {
+//             container(name: 'kaniko', shell: '/busybox/sh') {
+
+//                 sh 'ls -la'
+
+//                 // sh  '''#!/busybox/sh
+//                 //     /kaniko/executor --context `pwd` --verbosity debug --destination m2hadmin/test-pet-clinic:latest
+//                 //     '''
+//                 }
+//             }
+
+//         }
+
+//     }
 
 // timeout(unit: 'SECONDS', time: 150) {
 //     podTemplate(yaml: '''
