@@ -43,6 +43,35 @@ InitPodResources = """
 """
 
 
+YAML = '''
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  containers:
+  - name: jnlp
+    workingDir: /home/jenkins
+  - name: kaniko
+    workingDir: /home/jenkins
+    image: gcr.io/kaniko-project/executor:debug
+    imagePullPolicy: Always
+    command:
+    - /busybox/cat
+    tty: true
+    volumeMounts:
+      - name: jenkins-docker-cfg
+        mountPath: /kaniko/.docker
+  volumes:
+  - name: jenkins-docker-cfg
+    projected:
+      sources:
+      - secret:
+          name: docker-credentials
+          items:
+            - key: .dockerconfigjson
+              path: config.json
+'''
+
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml') {
     podTemplate(containers: [containerTemplate(image: $KanikoImage, name: 'kaniko', ttyEnabled: true, resources: $LimitBuilderBool ? ${} : '{}')]) {
