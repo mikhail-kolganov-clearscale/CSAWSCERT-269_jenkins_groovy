@@ -2,15 +2,14 @@
 properties([
     parameters(
         [
-            booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?')
-
-            
+            booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?'),
+            booleanParam(name: 'PushImage', defaultValue: true, description: 'Do we need to push the build image to the registry?'),
 
             string(
                 name: "ImagePushDestination",
                 defaultValue: 'm2hadmin/test-pet-clinic', 
                 description: 'Kaniko Image path'
-            ),
+            )
         ]
     )
 ])
