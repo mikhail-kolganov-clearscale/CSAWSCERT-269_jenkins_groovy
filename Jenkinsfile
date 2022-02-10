@@ -5,8 +5,8 @@ properties([
     
     parameters(
         [
-            booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?'),
-            booleanParam(name: 'PushTrigger', defaultValue: true, description: 'Do we need to push the build image to the registry?'),
+            booleanParam(name: 'BuildTrigger', defaultValue: false, description: 'Do we need to build the App?'),
+            booleanParam(name: 'PushTrigger', defaultValue: false, description: 'Do we need to push the build image to the registry?'),
             booleanParam(name: 'TestTrigger', defaultValue: true, description: 'Do we need to run tests?'),
             string(
                 name: "ImagePushDestination",
@@ -49,11 +49,11 @@ def generateStep(String stepName){
         }
 }
 
-def generateStage(String test, String testGroup) {
+def generateStage(String test) {
 
     if (parallelTests.containsKey(test)) {
         return {
-            stage("${testGroup} : ${test}") {
+            stage("TestGroup: ${test}") {
                 parallelTests.getAt(test).each {
                     stepName ->
                     generateStep("${test} :: ${stepName}")
@@ -63,7 +63,7 @@ def generateStage(String test, String testGroup) {
     } 
 
     return {
-        stage("${testGroup} : ${test}") {
+        stage("Test: ${test}") {
             generateStep(test)
         }
     }
@@ -124,12 +124,17 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             }
 
             if(!listOfTestsToExecute.isEmpty()) {
-                    stage("Test: testGroupName") {
+                listOfTestsToExecute.each {
+
+                    test -> 
+                    stage("Test: test") {
                         parallel listOfTestsToExecute.collectEntries {
-                            test ->
-                            ["${test}": generateStage(test, testGroupName)]
+                            testName ->
+                            ["${test}": generateStage(testName)]
                         }
                     }
+                }
+
                 }
             }
     }
