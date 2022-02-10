@@ -21,7 +21,7 @@ properties([
                 quoteValue: false, 
                 saveJSONParameterToFile: false,
                 type: 'PT_MULTI_SELECT',
-                value: 'RUN ALL TESTS,TEST_GROUP_1,TEST_GROUP 2,-------------,Test1-1,Test1-2,Test2-1,Test2-2,Test2-3,Test3-1,Test3-2,Test3-3',
+                value: 'RUN ALL TESTS,-------------,TEST_GROUP_1,TEST_GROUP_2,TEST_GROUP_3,-------------,Test1-1,Test1-2,Test2-1,Test2-2,Test2-3,Test3-1,Test3-2,Test3-3',
                 visibleItemCount: 12)
         ]
     )
