@@ -101,8 +101,8 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                     sh "git checkout ${params.CommitHash}"
                 }
 
-            shortCommit = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-            writeFile(file: short_commit.txt, text: shortCommit)
+            def shortCommit = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
+            writeFile(file: 'short_commit.txt', text: shortCommit)
         }
 
 
@@ -144,7 +144,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                     stage ("Build Docker Image in Kaniko") {
                         container(name: 'kaniko', shell: '/busybox/sh') {
 
-                            COMMIT_HASH = readFile(file: short_commit.txt)
+                            COMMIT_HASH = readFile(file: 'short_commit.txt')
                             sh  """#!/busybox/sh
                                 /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-${COMMIT_HASH}
                                 """
