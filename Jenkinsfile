@@ -141,7 +141,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                     stage ("Build Docker Image in Kaniko") {
                         container(name: 'kaniko', shell: '/busybox/sh') {
                             sh  """#!/busybox/sh
-                                COMMIT_HASH=$(git rev-parse --short HEAD)
+                                COMMIT_HASH=\$(git rev-parse --short HEAD)
                                 /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-\$COMMIT_HASH
                                 """
                         }
