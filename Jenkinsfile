@@ -87,9 +87,9 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             }
 
         stage ('OWASP Dependency-Check Vulnerabilities') {   
-            withMaven(maven : 'mvn-3.6.3') {  
-                sh 'mvn dependency-check:check'  
-            } 
+
+            sh '${WORKSPACE}/mvnw dependency-check:check'  
+
             dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'  
         } 
 
