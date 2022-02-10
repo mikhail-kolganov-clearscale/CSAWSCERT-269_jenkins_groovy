@@ -1,7 +1,8 @@
 
 properties([
-    [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
+    // [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
     [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '3', artifactNumToKeepStr: '4', daysToKeepStr: '3', numToKeepStr: '5']],
+    
     parameters(
         [
             booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?'),
