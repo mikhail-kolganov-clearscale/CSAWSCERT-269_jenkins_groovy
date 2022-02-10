@@ -54,10 +54,8 @@ podTemplate(yaml: '''
 
         stage('Clone the Git repo') {
 
-            // sh 'printenv | sort'
-            // echo $GIT_BRANCH
-            // echo $GIT_URL
-            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
+            sh 'ls -la'
+            // git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh '${WORKSPACE}/mvnw package'
             }
 
