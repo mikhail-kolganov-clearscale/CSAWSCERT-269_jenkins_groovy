@@ -89,7 +89,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
       node(POD_LABEL) { // gets a pod with both docker and maven
         stage('Clone the Repo') {
             sh 'printenv | sort'
-            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
+            // git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh 'pwd && ls -la'
             }
 
