@@ -85,19 +85,25 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             sh 'pwd && ls -la'
             }
 
-        dir(path: "${WORKSPACE}/complete/") {
-            stage ('OWASP Dependency-Check Vulnerabilities') {
-                container(name: 'maven') {
-                    
-                        sh 'mvn dependency-check:check'
-                        dependencyCheckPublisher pattern: 'target/dependency-check-report.xml' 
-                    }
+
+        stage ('OWASP Dependency-Check Vulnerabilities') {
+            container(name: 'maven') {
+                dir(path: "${WORKSPACE}/complete/") {
+                    echo '======= CHECK DEPENDECIES ========'
+                    sh 'mvn dependency-check:check'
+                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
                 }
+            }
+        }
 
         if ( env.BuildTrigger.toString().toBoolean() ){
-            stage('Build the App') {
-                echo '======= BUILDING ========'
-                sh '${WORKSPACE}/mvnw package'
+            stage('Build the App'){ 
+                container(name: 'maven') {
+                    dir(path: "${WORKSPACE}/complete/") {
+                        echo '======= BUILDING ========'
+                        sh '${WORKSPACE}/mvnw package'
+                    }
+                }
             }
 
 
@@ -115,7 +121,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             } else {
                     echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
             }
-        }
+        
     }
 }
 
