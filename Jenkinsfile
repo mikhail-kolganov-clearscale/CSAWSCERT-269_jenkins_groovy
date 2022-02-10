@@ -1,4 +1,3 @@
-
 properties([
     // [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
     [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '3', artifactNumToKeepStr: '4', daysToKeepStr: '3', numToKeepStr: '5']],
@@ -12,6 +11,16 @@ properties([
                 name: "ImagePushDestination",
                 defaultValue: 'm2hadmin/test-pet-clinic', 
                 description: 'Kaniko Image path'
+            ),
+            string(
+                name: "GitBranchOwerride",
+                defaultValue: '-USE DEFAULT-', 
+                description: 'Owerride the Git Branch'
+            ),
+            string(
+                name: "CommitHash",
+                defaultValue: '-USE CURRENT HEAD-', 
+                description: 'Checkout to specific commit'
             ),
             extendedChoice(
                 defaultValue: 'RUN ALL TESTS',
@@ -36,6 +45,8 @@ TEST_GROUPS = [
 String branchName = env.BRANCH_NAME
 String gitCredentials = "MyGitHub"
 String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_jenkins_groovy.git"
+
+
 
 
 
@@ -79,44 +90,72 @@ def generateTestList(String testName) {
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-    node(POD_LABEL) { 
+    node(POD_LABEL) {
         stage('Clone the Repo') {
-            // sh 'printenv | sort'
-            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
-            // sh 'pwd && ls -la'
-            }
+            def NEW_branchName = ( "${params.GitBranchOwerride}" != '-USE DEFAULT-' ) ? "${params.GitBranchOwerride}" : "${env.BRANCH_NAME}"
+            echo "===== Cloning the branch: ${NEW_branchName} of ${repoUrl} ====="
+            git branch: NEW_branchName, credentialsId: gitCredentials, url: repoUrl
 
-
-            stage ('OWASP Dependency-Check Vulnerabilities') {
-                container(name: 'maven') {
-                    sh 'mvn dependency-check:check'
-                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'  
+            if( "${params.CommitHash}" != '-USE CURRENT HEAD-') {
+                    echo "======== Checking out to the Commit: ${params.CommitHash} ========"
+                    sh "git checkout ${params.CommitHash}"
                 }
-            }
+        }
+
 
         if ( env.BuildTrigger.toString().toBoolean() ){
-            stage('Build the App') {
-                echo '======= BUILDING ========'
-                sh '${WORKSPACE}/mvnw package'
-            }
+            dir(path: "${WORKSPACE}"){
+                container(name: 'maven') {
+                    stage('Build the App'){ 
+                                echo '======= BUILDING ========'
+                                sh 'mvn package'
+                        }
 
 
-            if ( env.PushTrigger.toString().toBoolean() ) {
-                stage ("Build Docker Image in Kaniko") {
-                    container(name: 'kaniko', shell: '/busybox/sh') {
-                        sh  """#!/busybox/sh
-                            /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:latest
-                            """
+                    stage ('OWASP Dependency-Check Vulnerabilities') {
+                            echo '======= CHECK DEPENDECIES ========'
+                            sh '''
+                                pwd
+                                ls -la
+                                which mvn
+                            '''
+                            sh  "mvn dependency-check:check"
+                            
+                            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                        }
+
+
+                    stage('SonarQube analysis'){
+                            withSonarQubeEnv(credentialsId: 'SonarToken', installationName: 'Sonar-Server') {
+                                sh 'mvn sonar:sonar -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html'
+                            }
+                        }
                     }
-                }  
+                }
+        
+    
+
+
+
+                if ( env.PushTrigger.toString().toBoolean() ) {
+                    stage ("Build Docker Image in Kaniko") {
+                        container(name: 'kaniko', shell: '/busybox/sh') {
+                            sh  """#!/busybox/sh
+                                /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:latest
+                                """
+                        }
+                    }  
+                } else {
+                    echo "===== SKIPPING IMAGE PUSH due to env.PushTrigger: ${env.PushTrigger} ===="
+                }
+    
             } else {
-                echo "===== SKIPPING IMAGE PUSH due to env.PushTrigger: ${env.PushTrigger} ===="
+                    echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
             }
-        } else {
-                echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
         }
-    }
 }
+
+
 
 podTemplate(yaml: readTrusted('TestPodTemplate.yaml')) {
     node(POD_LABEL) {
