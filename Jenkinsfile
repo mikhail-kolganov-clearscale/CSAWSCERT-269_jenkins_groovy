@@ -86,12 +86,12 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             // sh 'pwd && ls -la'
             }
 
-        stage ('OWASP Dependency-Check Vulnerabilities') {   
-
-            sh '${WORKSPACE}/mvnw dependency-check:check'  
-
+        stage ('OWASP Dependency-Check Vulnerabilities') {
+        container(name: 'kaniko', shell: '/busybox/sh') {
+            sh 'mvn dependency-check:check'
             dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'  
-        } 
+        }
+        }
 
         if ( env.BuildTrigger.toString().toBoolean() ){
             stage('Build the App') {
