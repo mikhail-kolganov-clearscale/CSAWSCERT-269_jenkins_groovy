@@ -56,7 +56,7 @@ def generateStage(String test, String testGroup) {
     if (parallelTests.containsKey(test)) {
         return {
             stage("${testGroup} : ${test}") {
-                parallelTests.getAtt(test).each {
+                parallelTests.getAt(test).each {
                     stepName ->
                     generateStep("${test} :: ${stepName}")
                 }
