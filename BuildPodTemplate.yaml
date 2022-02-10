@@ -5,6 +5,11 @@ spec:
   containers:
   - name: jnlp
     workingDir: /home/jenkins
+  - name: maven
+    image: maven:3.8-openjdk-11
+    command:
+    - sleep
+    - "9999"
   - name: kaniko
     workingDir: /home/jenkins
     image: gcr.io/kaniko-project/executor:debug
