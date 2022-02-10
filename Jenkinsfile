@@ -132,8 +132,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                     }
                 }
             }
-
-        }
     }
 }
+
 
