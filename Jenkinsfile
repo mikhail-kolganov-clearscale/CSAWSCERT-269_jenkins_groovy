@@ -44,84 +44,21 @@ InitPodResources = """
 
 
 
-podTemplate(yaml: readTrusted('BuildPodTemplate.yaml') {
+podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
     podTemplate(containers: [containerTemplate(image: $KanikoImage, name: 'kaniko', ttyEnabled: true, resources: $LimitBuilderBool ? ${} : '{}')]) {
       node(POD_LABEL) { // gets a pod with both docker and maven
         stage('Build the App') {
             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh 'pwd && ls -la'
-            // sh '${WORKSPACE}/mvnw package'
             }
 
         stage ("Build Docker Image in Kaniko") {
             container(name: 'kaniko', shell: '/busybox/sh') {
 
                 sh 'ls -la'
-
-                // sh  '''#!/busybox/sh
-                //     /kaniko/executor --context `pwd` --verbosity debug --destination m2hadmin/test-pet-clinic:latest
-                //     '''
                 }
             }
         }
     }
 }
 
-
-
-// podTemplate(yaml: InitilaBuildPodTemplateYaml ) {
-//     node(POD_LABEL) {
-
-//         stage('Build the App') {
-//             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
-//             sh '${WORKSPACE}/mvnw package'
-//             }
-
-//         stage ("Build Docker Image in Kaniko") {
-//             container(name: 'kaniko', shell: '/busybox/sh') {
-
-//                 sh 'ls -la'
-
-//                 // sh  '''#!/busybox/sh
-//                 //     /kaniko/executor --context `pwd` --verbosity debug --destination m2hadmin/test-pet-clinic:latest
-//                 //     '''
-//                 }
-//             }
-
-//         }
-
-//     }
-
-// timeout(unit: 'SECONDS', time: 150) {
-//     podTemplate(yaml: '''
-//         apiVersion: v1
-//         kind: Pod
-//         metadata:
-//             labels: 
-//                 some-label: some-label-value
-//         spec:
-//             containers:
-//                 -   name: kaniko
-//                     image: gcr.io/kaniko-project/executor:debug
-//                     imagePullPolicy: IfNotPresent
-//                     command:
-//                     - sleep
-//                     args:
-//                     - 99d
-//         ''') {
-//         node(POD_LABEL) {
-
-//             stage ("Stage 2 - b") {
-//                 container('kaniko') {
-//                     echo POD_CONTAINER // displays 'busybox'
-//                     sh 'hostname'
-//                     unstash name: 'TestStash01'
-//                     sh 'cat test_file.txt; ls -la'
-//                     sh 'prinenv | sort'
-//                 }
-//             }
-
-//             }
-
-//         }
-// }
