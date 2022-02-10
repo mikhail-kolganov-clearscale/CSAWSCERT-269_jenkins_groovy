@@ -7,6 +7,7 @@ properties([
                 defaultValue: 'gcr.io/kaniko-project/executor:debug', 
                 description: 'Kaniko Image path'
             ),
+            booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?'),
 
             choice(
                 name: 'TestChoiceParam01', 
@@ -22,19 +23,26 @@ String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_j
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-    podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko', ttyEnabled: true, command: 'cat')]) {
+    podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko')]) {
       node(POD_LABEL) { // gets a pod with both docker and maven
-        stage('Build the App') {
+        stage('Clone the Repo') {
+            sh 'printenv | sort'
             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh 'pwd && ls -la'
             }
 
-        stage ("Build Docker Image in Kaniko") {
-            container(name: 'kaniko', shell: '/busybox/sh') {
-
-                sh 'ls -la'
+        if ( env.BuildTrigger ){
+            stage('Build the App') {
+                sh '${WORKSPACE}/mvnw package'
+            }
+            stage ("Build Docker Image in Kaniko") {
+                container(name: 'kaniko', shell: '/busybox/sh') {
+                    sh  '''#!/busybox/sh
+                        /kaniko/executor --context `pwd` --verbosity debug --destination m2hadmin/test-pet-clinic:latest
+                        '''
                 }
             }
+        }
         }
     }
 }
