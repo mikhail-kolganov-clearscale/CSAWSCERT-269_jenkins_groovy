@@ -5,7 +5,7 @@ spec:
   containers:
   - name: jnlp
     workingDir: /home/jenkins
-  - name: testPod
+  - name: testpod
     workingDir: /home/jenkins
     image: alpine
     imagePullPolicy: Always

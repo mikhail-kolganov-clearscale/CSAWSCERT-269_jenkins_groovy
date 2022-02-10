@@ -112,11 +112,14 @@ podTemplate(yaml: readTrusted('TestPodTemplate.yaml')) {
     node(POD_LABEL) {
         if ( env.TestTrigger.toString().toBoolean()){
             timeout(15){
-
+            container(name: 'testpod') {
+                stage('Clone the Repo') {
+                        git branch: branchName, credentialsId: gitCredentials, url: repoUrl
+                    }
                 // parse input parameter and find those tests we need to execute
                 selectedTests = env.TESTS_TO_EXECUTE.split(',')
                 stage('TESTING') {
-                container(name: 'testPod') {
+                
                     if(selectedTests.size() > 0 ) {
                         selectedTests.each {
                             test ->
