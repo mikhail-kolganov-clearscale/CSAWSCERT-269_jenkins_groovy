@@ -44,8 +44,10 @@ parallelTests = [
 ]
 
 def generateStep(String stepName){
-        return {
-            sh "echo  \"===================> Executint Test: ${stepName}\""
+        return catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            timeout(60) {
+                sh "echo  \"===================> Executint Test: ${stepName}\""
+            }
         }
 }
 
@@ -127,7 +129,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                 listOfTestsToExecute.each {
                     testName -> 
                     stage("TestStage: ${testName}") {
-                        generateStep(testName)
+                        generateStage(testName)
                     }
                 }
             }
