@@ -6,7 +6,7 @@ properties([
         [
             booleanParam(name: 'BuildTrigger', defaultValue: false, description: 'Do we need to build the App?'),
             booleanParam(name: 'PushTrigger', defaultValue: false, description: 'Do we need to push the build image to the registry?'),
-            booleanParam(name: 'TestTrigger', defaultValue: true, description: 'Do we need to run tests?'),
+
             string(
                 name: "ImagePushDestination",
                 defaultValue: 'm2hadmin/test-pet-clinic', 
@@ -22,6 +22,13 @@ properties([
                 defaultValue: '-USE CURRENT HEAD-', 
                 description: 'Checkout to specific commit'
             ),
+            string(
+                name: "AdditionalWorkspacePath",
+                defaultValue: '/', 
+                description: 'Add additinal path for the \${WORKSPACE}'
+            ),
+
+            booleanParam(name: 'TestTrigger', defaultValue: true, description: 'Do we need to run tests?'),
             extendedChoice(
                 defaultValue: 'RUN ALL TESTS',
                 description: 'Multi select list of stages to be executed during this execution',
@@ -107,7 +114,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
 
 
         if ( env.BuildTrigger.toString().toBoolean() ){
-            dir(path: "${WORKSPACE}"){
+            dir(path: "${WORKSPACE}/${params.AdditionalWorkspacePath}/"){
                 container(name: 'maven') {
                     stage('Build the App'){ 
                                 echo '======= BUILDING ========'
