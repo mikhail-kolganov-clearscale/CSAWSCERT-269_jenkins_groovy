@@ -6,7 +6,9 @@ properties([
                 defaultValue: 'gcr.io/kaniko-project/executor:debug', 
                 description: 'Kaniko Image path'
             ),
+
             booleanParam(name: 'LimitBuilderBool', defaultValue: true, description: 'Limit the Builder POD resources?'),
+            
             string(
                 name: "BuilderCpuLimit",
                 defaultValue: '200m', 
