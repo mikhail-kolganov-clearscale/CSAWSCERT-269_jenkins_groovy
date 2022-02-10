@@ -23,7 +23,6 @@ String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_j
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-    podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko')]) {
       node(POD_LABEL) { // gets a pod with both docker and maven
         stage('Clone the Repo') {
             sh 'printenv | sort'
@@ -42,7 +41,6 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                         '''
                 }
             }
-        }
         }
     }
 }
