@@ -53,7 +53,10 @@ def generateStep(String stepName){
 
 def generateStage(String test) {
 
+    echo "111111111111111111111111111"
+
     if (parallelTests.containsKey(test)) {
+        echo 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         return {
             stage("TestGroup: ${test}") {
                 parallelTests.getAt(test).each {
@@ -63,7 +66,8 @@ def generateStage(String test) {
             }
         } 
     } 
-
+    
+    echo 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
     return {
         stage("Test: ${test}") {
             generateStep(test)
