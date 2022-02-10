@@ -86,21 +86,7 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             }
 
 
-        stage ('OWASP Dependency-Check Vulnerabilities') {
-            container(name: 'maven') {
-                dir(path: "${WORKSPACE}/complete/") {
-                    echo '======= CHECK DEPENDECIES ========'
-                    sh '''
-                        pwd
-                        ls -la
-                        which mvn
-                    '''
-                    sh  "mvn dependency-check:check"
-                    
-                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-                }
-            }
-        }
+
 
         if ( env.BuildTrigger.toString().toBoolean() ){
             stage('Build the App'){ 
