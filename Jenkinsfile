@@ -35,11 +35,11 @@ String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_j
 
 InitPodResources = """
         requests:
-            memory: ${BuilderMemLimit}
-            cpu: ${BuilderCpuLimit}
+            memory: ${env.BuilderMemLimit}
+            cpu: ${env.BuilderCpuLimit}
         limits:
-            memory: ${BuilderMemLimit}
-            cpu: ${BuilderCpuLimit}
+            memory: ${env.BuilderMemLimit}
+            cpu: ${env.BuilderCpuLimit}
 """
 
 
