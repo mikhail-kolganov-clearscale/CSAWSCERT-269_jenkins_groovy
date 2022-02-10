@@ -85,39 +85,38 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             sh 'pwd && ls -la'
             }
 
-        stage ('OWASP Dependency-Check Vulnerabilities') {
-            container(name: 'maven') {
-                dir(path: "${WORKSPACE}/complete/") {
-                    echo '======= CHECK DEPENDECIES ========'
-                    sh '''
-                        pwd
-                        ls -la
-                        which mvn
-                    '''
-                    sh  "mvn dependency-check:check"
-                    
-                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-                }
-            }
-        }
 
-        stage('SonarQube analysis'){
-            container(name: 'maven') {
-                dir(path: "${WORKSPACE}/complete/") {
-            withSonarQubeEnv(credentialsId: 'SonarToken', installationName: 'Sonar-Server') {
-                sh 'mvn sonar:sonar -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html'
-            }}
-        }}
 
         if ( env.BuildTrigger.toString().toBoolean() ){
-            stage('Build the App'){ 
-                container(name: 'maven') {
-                    dir(path: "${WORKSPACE}/complete/") {
-                        echo '======= BUILDING ========'
-                        sh 'mvn package'
+        dir(path: "${WORKSPACE}/complete/"){
+            container(name: 'maven') {
+                stage('Build the App'){ 
+                            echo '======= BUILDING ========'
+                            sh 'mvn package'
+                    }
+
+
+                stage ('OWASP Dependency-Check Vulnerabilities') {
+                        echo '======= CHECK DEPENDECIES ========'
+                        sh '''
+                            pwd
+                            ls -la
+                            which mvn
+                        '''
+                        sh  "mvn dependency-check:check"
+                        
+                        dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                    }
+
+
+                stage('SonarQube analysis'){
+                        withSonarQubeEnv(credentialsId: 'SonarToken', installationName: 'Sonar-Server') {
+                            sh 'mvn sonar:sonar -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html'
+                        }
                     }
                 }
             }
+        }
 
 
             if ( env.PushTrigger.toString().toBoolean() ) {
