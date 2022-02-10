@@ -45,9 +45,7 @@ parallelTests = [
 
 def generateStep(String stepName){
         return {
-            timeout(15) {
-                echo "===================> Executint Test: ${stepName}"
-            }
+            sh "echo  \"===================> Executint Test: ${stepName}\""
         }
 }
 
@@ -117,12 +115,14 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
 
         if ( env.TestTrigger.toBoolean() ){
 
+            listOfTestsToExecute = []
+            
             TEST_GROUPS.each {
                 testGroupName, testStages ->
+                listOfTestsToExecute.addAll(generateTestList(testGroupName))
+            }
 
-                listOfTestsToExecute = generateTestList(testGroupName)
-
-                if(!listOfTestsToExecute.isEmpty()) {
+            if(!listOfTestsToExecute.isEmpty()) {
                     stage("Test: testGroupName") {
                         parallel listOfTestsToExecute.collectEntries {
                             test ->
