@@ -45,7 +45,7 @@ InitPodResources = """
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-    podTemplate(containers: [containerTemplate(image: ${KanikoImage}, name: 'kaniko', ttyEnabled: true, resources: ${LimitBuilderBool} ? ${} : '{}')]) {
+    podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko', ttyEnabled: true, resources: env.LimitBuilderBool ? InitPodResources : '{}')]) {
       node(POD_LABEL) { // gets a pod with both docker and maven
         stage('Build the App') {
             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
@@ -61,4 +61,3 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
         }
     }
 }
-
