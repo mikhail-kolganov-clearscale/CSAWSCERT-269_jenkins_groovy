@@ -49,7 +49,7 @@ def generateStage(String test, String testGroup) {
     return {
         stage("TestGroup: ${testGroup} Test: ${test}") {
             return catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                dir(${WORKSPACE/${testGroup}}) {
+                dir(${WORKSPACE}/${testGroup}) {
                     echo "--- Execuring the test: ${testGroup}/${test}"
                     sh "cat ./${test}.txt"
                 }
