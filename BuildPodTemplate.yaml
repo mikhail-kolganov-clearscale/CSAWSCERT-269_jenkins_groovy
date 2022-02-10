@@ -9,7 +9,8 @@ spec:
     workingDir: /home/jenkins
     image: maven:3.8-openjdk-11
     command:
-    - "sleep 99999"
+    - sleep
+    - "99999"
   - name: kaniko
     workingDir: /home/jenkins
     image: gcr.io/kaniko-project/executor:debug
