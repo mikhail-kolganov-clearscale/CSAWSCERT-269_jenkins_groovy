@@ -86,18 +86,21 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             // sh 'pwd && ls -la'
             }
 
-        stage ('OWASP Dependency-Check Vulnerabilities') {
-        container(name: 'kaniko', shell: '/busybox/sh') {
-            sh 'mvn dependency-check:check'
-            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'  
-        }
-        }
+
 
         if ( env.BuildTrigger.toString().toBoolean() ){
             stage('Build the App') {
                 echo '======= BUILDING ========'
                 sh '${WORKSPACE}/mvnw package'
             }
+
+            stage ('OWASP Dependency-Check Vulnerabilities') {
+                container(name: 'maven') {
+                    sh 'mvn dependency-check:check'
+                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'  
+                }
+            }
+
             if ( env.PushTrigger.toString().toBoolean() ) {
                 stage ("Build Docker Image in Kaniko") {
                     container(name: 'kaniko', shell: '/busybox/sh') {
