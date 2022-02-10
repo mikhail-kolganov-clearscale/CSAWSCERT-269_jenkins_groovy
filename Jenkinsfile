@@ -116,20 +116,21 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                     }
                 }
             }
-        }
 
 
-            if ( env.PushTrigger.toString().toBoolean() ) {
-                stage ("Build Docker Image in Kaniko") {
-                    container(name: 'kaniko', shell: '/busybox/sh') {
-                        sh  """#!/busybox/sh
-                            /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:latest
-                            """
-                    }
-                }  
-            } else {
-                echo "===== SKIPPING IMAGE PUSH due to env.PushTrigger: ${env.PushTrigger} ===="
-            }
+
+                if ( env.PushTrigger.toString().toBoolean() ) {
+                    stage ("Build Docker Image in Kaniko") {
+                        container(name: 'kaniko', shell: '/busybox/sh') {
+                            sh  """#!/busybox/sh
+                                /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:latest
+                                """
+                        }
+                    }  
+                } else {
+                    echo "===== SKIPPING IMAGE PUSH due to env.PushTrigger: ${env.PushTrigger} ===="
+                }
+    
             } else {
                     echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
             }
