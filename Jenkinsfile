@@ -8,19 +8,6 @@ properties([
                 description: 'Kaniko Image path'
             ),
 
-            booleanParam(name: 'LimitBuilderBool', defaultValue: true, description: 'Limit the Builder POD resources?'),
-
-            string(
-                name: "BuilderCpuLimit",
-                defaultValue: '200m', 
-                description: 'Set the CPU Limit for the Builder POD'
-            ),
-            string(
-                name: "BuilderMemLimit",
-                defaultValue: '500Mi', 
-                description: 'Set the CPU Limit for the Builder POD'
-            ),
-
             choice(
                 name: 'TestChoiceParam01', 
                 choices: ['one', 'two', 'three'], 
@@ -45,7 +32,7 @@ InitPodResources = """
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-    podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko', ttyEnabled: true, resources: env.LimitBuilderBool ? InitPodResources : '{}')]) {
+    podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko', ttyEnabled: true, command: 'cat')]) {
       node(POD_LABEL) { // gets a pod with both docker and maven
         stage('Build the App') {
             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
