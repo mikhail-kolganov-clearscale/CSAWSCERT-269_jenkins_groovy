@@ -12,6 +12,16 @@ properties([
                 defaultValue: 'm2hadmin/test-pet-clinic', 
                 description: 'Kaniko Image path'
             ),
+            string(
+                name: "GitBranchOwerride",
+                defaultValue: '-USE DEFAULT-', 
+                description: 'Owerride the Git Branch'
+            ),
+            string(
+                name: "CommitHash",
+                defaultValue: '-USE CURRENT HEAD-', 
+                description: 'Checkout to specific commit'
+            ),
             extendedChoice(
                 defaultValue: 'RUN ALL TESTS',
                 description: 'Multi select list of stages to be executed during this execution',
@@ -35,6 +45,8 @@ TEST_GROUPS = [
 String branchName = env.BRANCH_NAME
 String gitCredentials = "MyGitHub"
 String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_jenkins_groovy.git"
+
+
 
 
 
@@ -81,8 +93,15 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
     node(POD_LABEL) { 
         stage('Clone the Repo') {
             // sh 'printenv | sort'
-            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
-            sh 'pwd && ls -la'
+
+            NEW_branchName = ( ${params.GitBranchOwerride} != '-USE DEFAULT-' ) ? ${params.GitBranchOwerride} : ${env.BRANCH_NAME}
+            echo "===== Cloning the branch: ${NEW_branchName} of ${repoUrl} ====="
+            git branch: NEW_branchName, credentialsId: gitCredentials, url: repoUrl
+
+            if( ${params.CommitHash} != '-USE CURRENT HEAD-') {
+                echo "======== Checking out to the Commit: ${params.CommitHash} ========"
+                    sh "git checkout ${params.CommitHash}"
+                }
             }
 
 
