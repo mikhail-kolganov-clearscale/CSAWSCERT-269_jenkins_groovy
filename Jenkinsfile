@@ -15,7 +15,7 @@ properties([
 ])
 
 String branchName = env.BRANCH_NAME
-String gitCredentials = "github"
+String gitCredentials = "MyGitHub"
 String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_jenkins_groovy.git"
 
 podTemplate(yaml: '''
@@ -54,8 +54,8 @@ podTemplate(yaml: '''
 
         stage('Clone the Git repo') {
 
+            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh 'ls -la'
-            // git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh '${WORKSPACE}/mvnw package'
             }
 
