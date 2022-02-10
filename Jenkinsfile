@@ -3,6 +3,14 @@ properties([
     parameters(
         [
             booleanParam(name: 'BuildTrigger', defaultValue: true, description: 'Do we need to build the App?')
+
+            
+
+            string(
+                name: "ImagePushDestination",
+                defaultValue: 'm2hadmin/test-pet-clinic', 
+                description: 'Kaniko Image path'
+            ),
         ]
     )
 ])
@@ -22,13 +30,14 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
 
         if ( env.BuildTrigger ){
             stage('Build the App') {
+                echo '======= BUILDING ========'
                 sh '${WORKSPACE}/mvnw package'
             }
             stage ("Build Docker Image in Kaniko") {
                 container(name: 'kaniko', shell: '/busybox/sh') {
-                    sh  '''#!/busybox/sh
-                        /kaniko/executor --context `pwd` --verbosity debug --destination m2hadmin/test-pet-clinic:latest
-                        '''
+                    sh  """#!/busybox/sh
+                        /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:latest
+                        """
                 }
             }
         }
