@@ -125,18 +125,13 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
 
             if(!listOfTestsToExecute.isEmpty()) {
                 listOfTestsToExecute.each {
-
-                    test -> 
-                    stage("Test: test") {
-                        parallel listOfTestsToExecute.collectEntries {
-                            testName ->
-                            ["${test}": generateStage(testName)]
-                        }
+                    testName -> 
+                    stage("TestStage: ${testName}") {
+                        generateStep(testName)
                     }
                 }
-
-                }
             }
+        }
     }
 }
 
