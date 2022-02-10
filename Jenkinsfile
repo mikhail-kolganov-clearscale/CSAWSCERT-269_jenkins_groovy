@@ -81,11 +81,11 @@ def generateTestList(String testName) {
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
     node(POD_LABEL) { 
         stage('Clone the Repo') {
-            sh 'printenv | sort'
+            // sh 'printenv | sort'
             git branch: branchName, credentialsId: gitCredentials, url: repoUrl
-            sh 'pwd && ls -la'
+            // sh 'pwd && ls -la'
             }
-            
+
         stage ('OWASP Dependency-Check Vulnerabilities') {   
             withMaven(maven : 'mvn-3.6.3') {  
                 sh 'mvn dependency-check:check'  
