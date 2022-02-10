@@ -93,12 +93,12 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             sh 'pwd && ls -la'
             }
 
-        if ( env.BuildTrigger.toBoolean() ){
+        if ( env.BuildTrigger.toString().toBoolean() ){
             stage('Build the App') {
                 echo '======= BUILDING ========'
                 sh '${WORKSPACE}/mvnw package'
             }
-            if ( env.PushTrigger.toBoolean() ) {
+            if ( env.PushTrigger.toString().toBoolean() ) {
                 stage ("Build Docker Image in Kaniko") {
                     container(name: 'kaniko', shell: '/busybox/sh') {
                         sh  """#!/busybox/sh
@@ -113,7 +113,8 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
                 echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
         }
 
-        if ( env.TestTrigger.toBoolean() ){
+
+        if ( myTestTrigger = env.TestTrigger.toString().toBoolean() ?: true ){
 
             listOfTestsToExecute = []
             
