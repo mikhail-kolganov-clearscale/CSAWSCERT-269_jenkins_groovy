@@ -21,15 +21,16 @@ properties([
                 quoteValue: false, 
                 saveJSONParameterToFile: false,
                 type: 'PT_MULTI_SELECT',
-                value: 'RUN ALL TESTS,TEST GROUP 1,TEST GROUP 2,-------------,Test1-1,Test1-2,Test2-1,Test2-2,Test2-3, -------------, SKIP ALL TESTS ',
+                value: 'RUN ALL TESTS,TEST_GROUP_1,TEST_GROUP 2,-------------,Test1-1,Test1-2,Test2-1,Test2-2,Test2-3,Test3-1,Test3-2,Test3-3',
                 visibleItemCount: 12)
         ]
     )
 ])
 
 TEST_GROUPS = [
-    'TEST GROUP 1' : ["Test1-1", "Test1-2"],
-    'TEST GROUP 2' : ["Test2-1", "Test2-2", "Test2-3"]
+    'TEST_GROUP_1' : ["Test1-1", "Test1-2"],
+    'TEST_GROUP_2' : ["Test2-1", "Test2-2", "Test2-3"],
+    'TEST_GROUP_3' : ["Test3-1", "Test3-2", "Test3-3"]
 ]
 
 String branchName = env.BRANCH_NAME
@@ -38,64 +39,50 @@ String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_j
 
 
 
-parallelTests = [
-    'Test1-2' : [ 'Test1-2__A', 'Test1-2__B', 'Test1-2__C'],
-    'Test2-1' : ['Test2-1_A', 'Test2-1_B']
-]
+// just an empy map to fill with actial Tests we want to execute
+TESTS = [:]
 
-def generateStep(String stepName){
-        return catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-            timeout(60) {
-                sh "echo  \"===================> Executint Test: ${stepName}\""
-            }
-        }
-}
 
-def generateStage(String test) {
+def generateStage(String test, String testGroup) {
 
-    echo "111111111111111111111111111"
-
-    if (parallelTests.containsKey(test)) {
-        echo 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-        return {
-            stage("TestGroup: ${test}") {
-                parallelTests.getAt(test).each {
-                    stepName ->
-                    generateStep("${test} :: ${stepName}")
+    echo "Generating the Stage: ${test}"
+    return {
+        stage("TestGroup: ${testGroup} Test: ${test}") {
+            return catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                dir(${WORKSPACE/${testGroup}}) {
+                    echo "--- Execuring the test: ${testGroup}/${test}"
+                    sh "cat ./${test}.txt"
                 }
             }
-        } 
-    } 
-    
-    echo 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
-    return {
-        stage("Test: ${test}") {
-            generateStep(test)
         }
     }
 }
 
-def generateTestList(String testGroupName) {
-    testToExecute = []
-    if ( env.TESTS_TO_EXECUTE.contains('RUN ALL TESTS') ) {
-        TEST_GROUPS.each { 
-            group ->
-            testToExecute.addAll(group.value)
-        }
-    } else {
-        selectedTests = env.TESTS_TO_EXECUTE.split(',')
-        testToExecute = TEST_GROUPS.findAll { selectedTests.contains(it)}
+
+def generateTestList(String testName) {
+    testToExecute = [:] // create an empty Map
+    if ( testName == 'RUN ALL TESTS') {   // if we have 'RUN ALL TESTS' selected, just return all our TEST_GROUPS amp
+        testToExecute = TEST_GROUPS
+    } else if (TEST_GROUPS.containsKey(testName)) {   // else, if we have a Group Name - put all this group into map
+            testToExecute.put(testName, TEST_GROUPS[testName])
+            return testToExecute
+    }
+
+    TEST_GROUPS.each {   // for individual tests, put them indivudually
+        groupKey, groupVal ->
+        if ( groupVal.contains(testName) )
+            testToExecute=["${groupKey}": [testName]]         
     }
     return testToExecute
-}
 
+}
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-      node(POD_LABEL) { // gets a pod with both docker and maven
+    node(POD_LABEL) { 
         stage('Clone the Repo') {
             sh 'printenv | sort'
-            // git branch: branchName, credentialsId: gitCredentials, url: repoUrl
+            git branch: branchName, credentialsId: gitCredentials, url: repoUrl
             sh 'pwd && ls -la'
             }
 
@@ -118,27 +105,45 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
         } else {
                 echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
         }
+    }
+}
 
-
+podTemplate(yaml: readTrusted('TestPodTemplate.yaml')) {
+    node(POD_LABEL) {
         if ( env.TestTrigger.toString().toBoolean()){
+            timeout(15){
 
-            listOfTestsToExecute = []
-            
-            TEST_GROUPS.each {
-                testGroupName, testStages ->
-                listOfTestsToExecute.addAll(generateTestList(testGroupName))
-            }
+                // parse input parameter and find those tests we need to execute
+                selectedTests = env.TESTS_TO_EXECUTE.split(',')
+                stage('TESTING') {
+                container(name: 'testPod') {
+                    if(selectedTests.size() > 0 ) {
+                        selectedTests.each {
+                            test ->
+                            generateTestList(test).each {
+                            key, val ->
+                            String group = key.toString()
+                            if( TESTS.containsKey(group) ){
+                                TESTS[group].addAll(val as Set)
+                            } else {
+                                TESTS.put(group, val as Set)
+                            }
+                            }
+                        }
+                    }
 
-            if(!listOfTestsToExecute.isEmpty()) {
-                listOfTestsToExecute.each {
-                    testName -> 
-                    stage("TestStage: ${testName}") {
-                        generateStage(testName)
+                    TESTS.each {
+                        testGroup, testSet ->
+                        stage(testGroup) {
+                            parallel testSet.collectEntries {
+                                ["${it}": generateStage(it, testGroup)]
+                            }
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
-
 
