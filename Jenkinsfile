@@ -20,16 +20,6 @@ String branchName = env.BRANCH_NAME
 String gitCredentials = "MyGitHub"
 String repoUrl = "https://github.com/mikhail-kolganov-clearscale/CSAWSCERT-269_jenkins_groovy.git"
 
-InitPodResources = """
-        requests:
-            memory: ${env.BuilderMemLimit}
-            cpu: ${env.BuilderCpuLimit}
-        limits:
-            memory: ${env.BuilderMemLimit}
-            cpu: ${env.BuilderCpuLimit}
-"""
-
-
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
     podTemplate(containers: [containerTemplate(image: env.KanikoImage, name: 'kaniko', ttyEnabled: true, command: 'cat')]) {
