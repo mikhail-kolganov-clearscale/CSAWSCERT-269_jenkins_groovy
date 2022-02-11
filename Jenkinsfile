@@ -6,7 +6,7 @@ properties([
         [
             booleanParam(name: 'BuildTrigger', defaultValue: false, description: 'Do we need to build the App?'),
             booleanParam(name: 'PushTrigger', defaultValue: false, description: 'Do we need to push the build image to the registry?'),
-            booleanParam(name: 'TestTrigger', defaultValue: true, description: 'Do we need to run tests?'),
+
             string(
                 name: "ImagePushDestination",
                 defaultValue: 'm2hadmin/test-pet-clinic', 
@@ -22,6 +22,13 @@ properties([
                 defaultValue: '-USE CURRENT HEAD-', 
                 description: 'Checkout to specific commit'
             ),
+            string(
+                name: "AdditionalWorkspacePath",
+                defaultValue: '/', 
+                description: 'Add additinal path for the \${WORKSPACE}'
+            ),
+
+            booleanParam(name: 'TestTrigger', defaultValue: true, description: 'Do we need to run tests?'),
             extendedChoice(
                 defaultValue: 'RUN ALL TESTS',
                 description: 'Multi select list of stages to be executed during this execution',
@@ -90,59 +97,63 @@ def generateTestList(String testName) {
 
 
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
-    node(POD_LABEL) { 
+    node(POD_LABEL) {
         stage('Clone the Repo') {
-            // sh 'printenv | sort'
-
             def NEW_branchName = ( "${params.GitBranchOwerride}" != '-USE DEFAULT-' ) ? "${params.GitBranchOwerride}" : "${env.BRANCH_NAME}"
             echo "===== Cloning the branch: ${NEW_branchName} of ${repoUrl} ====="
             git branch: NEW_branchName, credentialsId: gitCredentials, url: repoUrl
 
             if( "${params.CommitHash}" != '-USE CURRENT HEAD-') {
-                echo "======== Checking out to the Commit: ${params.CommitHash} ========"
+                    echo "======== Checking out to the Commit: ${params.CommitHash} ========"
                     sh "git checkout ${params.CommitHash}"
                 }
-            }
 
+            def shortCommit = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
+            writeFile(file: 'short_commit.txt', text: shortCommit)
+        }
 
 
         if ( env.BuildTrigger.toString().toBoolean() ){
-        dir(path: "${WORKSPACE}/"){
-            container(name: 'maven') {
-                stage('Build the App'){ 
-                            echo '======= BUILDING ========'
-                            sh 'mvn package'
-                    }
+            dir(path: "${WORKSPACE}/${params.AdditionalWorkspacePath}/"){
+                container(name: 'maven') {
+                    stage('Build the App'){ 
+                                echo '======= BUILDING ========'
+                                sh 'mvn package'
+                        }
 
 
-                stage ('OWASP Dependency-Check Vulnerabilities') {
-                        echo '======= CHECK DEPENDECIES ========'
-                        sh '''
-                            pwd
-                            ls -la
-                            which mvn
-                        '''
-                        sh  "mvn dependency-check:check"
-                        
-                        dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-                    }
+                    stage ('OWASP Dependency-Check Vulnerabilities') {
+                            echo '======= CHECK DEPENDECIES ========'
+                            sh '''
+                                pwd
+                                ls -la
+                                which mvn
+                            '''
+                            sh  "mvn dependency-check:check"
+                            
+                            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                        }
 
 
-                stage('SonarQube analysis'){
-                        withSonarQubeEnv(credentialsId: 'SonarToken', installationName: 'Sonar-Server') {
-                            sh 'mvn sonar:sonar -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html'
+                    stage('SonarQube analysis'){
+                            withSonarQubeEnv(credentialsId: 'SonarToken', installationName: 'Sonar-Server') {
+                                sh 'mvn sonar:sonar -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html'
+                            }
                         }
                     }
                 }
-            }
+        
+    
 
 
 
                 if ( env.PushTrigger.toString().toBoolean() ) {
                     stage ("Build Docker Image in Kaniko") {
                         container(name: 'kaniko', shell: '/busybox/sh') {
+
+                            COMMIT_HASH = readFile(file: 'short_commit.txt')
                             sh  """#!/busybox/sh
-                                /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:latest
+                                /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-${COMMIT_HASH}
                                 """
                         }
                     }  
@@ -153,9 +164,10 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             } else {
                     echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
             }
-        
-    }
+        }
 }
+
+
 
 podTemplate(yaml: readTrusted('TestPodTemplate.yaml')) {
     node(POD_LABEL) {
