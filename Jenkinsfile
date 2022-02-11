@@ -22,6 +22,7 @@ properties([
                 defaultValue: '-USE CURRENT HEAD-', 
                 description: 'Checkout to specific commit'
             ),
+
             string(
                 name: "AdditionalWorkspacePath",
                 defaultValue: '/', 
@@ -29,6 +30,7 @@ properties([
             ),
 
             booleanParam(name: 'TestTrigger', defaultValue: true, description: 'Do we need to run tests?'),
+
             extendedChoice(
                 defaultValue: 'RUN ALL TESTS',
                 description: 'Multi select list of stages to be executed during this execution',
@@ -99,11 +101,14 @@ def generateTestList(String testName) {
 podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
     node(POD_LABEL) {
         stage('Clone the Repo') {
+
+
             def NEW_branchName = ( "${params.GitBranchOwerride}" != '-USE DEFAULT-' ) ? "${params.GitBranchOwerride}" : "${env.BRANCH_NAME}"
             echo "===== Cloning the branch: ${NEW_branchName} of ${repoUrl} ====="
             git branch: NEW_branchName, credentialsId: gitCredentials, url: repoUrl
 
             if( "${params.CommitHash}" != '-USE CURRENT HEAD-') {
+
                     echo "======== Checking out to the Commit: ${params.CommitHash} ========"
                     sh "git checkout ${params.CommitHash}"
                 }
@@ -113,7 +118,11 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
         }
 
 
+
+
+
         if ( env.BuildTrigger.toString().toBoolean() ){
+
             dir(path: "${WORKSPACE}/${params.AdditionalWorkspacePath}/"){
                 container(name: 'maven') {
                     stage('Build the App'){ 
@@ -147,13 +156,16 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
 
 
 
+
                 if ( env.PushTrigger.toString().toBoolean() ) {
                     stage ("Build Docker Image in Kaniko") {
                         container(name: 'kaniko', shell: '/busybox/sh') {
 
+
                             COMMIT_HASH = readFile(file: 'short_commit.txt')
                             sh  """#!/busybox/sh
                                 /kaniko/executor --context `pwd` --verbosity debug --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-latest --destination ${env.ImagePushDestination}:${env.BRANCH_NAME}-${COMMIT_HASH}
+
                                 """
                         }
                     }  
@@ -164,7 +176,9 @@ podTemplate(yaml: readTrusted('BuildPodTemplate.yaml')) {
             } else {
                     echo "===== SKIPPING THE BUILD due to env.BuildTrigger: ${env.BuildTrigger} ===="
             }
+
         }
+
 }
 
 
